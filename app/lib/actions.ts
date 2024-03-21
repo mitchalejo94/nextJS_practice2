@@ -71,13 +71,19 @@ const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 // Passing the variables to your SQL query.
 // Calling revalidatePath to clear the client cache and make a new server request.
 // Calling redirect to redirect the user to the invoice's page.
-export async function updateInvoice(id: string, formData: FormData) {
-    const { customerId, amount, status } = UpdateInvoice.parse({
-      customerId: formData.get('customerId'),
-      amount: formData.get('amount'),
-      status: formData.get('status'),
+export async function updateInvoice(id: string, prevState: State, formData: FormData) {
+  const validatedFields = UpdateInvoice.safeParse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
     });
-   
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'Missing Fields. Failed to Update Invoice.',
+      };
+    }
+    const { customerId, amount, status } = validatedFields.data;
     const amountInCents = amount * 100;
    
     try{
